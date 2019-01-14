@@ -100,7 +100,7 @@ describe PgQuery::Deparse do
                 "path" || ROW("g"."f1", "g"."f2"),
                 ROW("g"."f1", "g"."f2") = ANY("path")
               FROM "graph" g, "search_graph" sg
-              WHERE "g"."id" = "sg"."link" AND NOT "cycle"
+              WHERE "g"."id" = "sg"."link" AND NOT ("cycle")
           )
           SELECT "id", "data", "link" FROM "search_graph";
           )
@@ -281,7 +281,7 @@ describe PgQuery::Deparse do
       end
 
       context 'NOT' do
-        let(:query) { 'SELECT * FROM "x" WHERE NOT "y"' }
+        let(:query) { 'SELECT * FROM "x" WHERE NOT ("y")' }
 
         it { is_expected.to eq query }
       end
@@ -452,6 +452,36 @@ describe PgQuery::Deparse do
           'VALUES (''admin''::text), (''ordinary''::text)')
           AS (row_cols varchar[], admin int, ordinary int)
           }
+        end
+
+        it { is_expected.to eq oneline_query }
+      end
+
+      context 'with NOT subexpression' do
+        let(:query) do
+          %q{
+          SELECT "table_one".*
+          FROM "table_one"
+          WHERE "table_one"."col1" = 't' AND
+                 NOT ("table_one"."col2" IS NOT NULL OR
+                      "table_one"."col3" IS NOT NULL)
+          }
+        end
+
+        it { is_expected.to eq oneline_query }
+      end
+
+      context 'ILIKE' do
+        let(:query) do
+          %q{ SELECT * FROM "table" WHERE "col" ILIKE '%xx%' }
+        end
+
+        it { is_expected.to eq oneline_query }
+      end
+
+      context 'NOT ILIKE' do
+        let(:query) do
+          %q{ SELECT * FROM "table" WHERE "col" NOT ILIKE '%xx%' }
         end
 
         it { is_expected.to eq oneline_query }
