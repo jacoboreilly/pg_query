@@ -486,6 +486,14 @@ describe PgQuery::Deparse do
 
         it { is_expected.to eq oneline_query }
       end
+
+      context 'indirection into array result of function' do
+        let(:query) do
+          %q{ SELECT (array_agg("col1"))[1] FROM "table" }
+        end
+
+        it { is_expected.to eq oneline_query }
+      end
     end
 
     context 'type cast' do

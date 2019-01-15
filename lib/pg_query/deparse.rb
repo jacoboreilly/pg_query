@@ -239,7 +239,9 @@ class PgQuery
     end
 
     def deparse_a_indirection(node)
-      output = [deparse_item(node['arg'])]
+      target = deparse_item(node['arg'])
+      target = "(#{target})" if node['arg'].keys[0] == 'FuncCall' # Wrap function calls in parens so that indirection will operate on output of function.
+      output = [target]
       node['indirection'].each do |subnode|
         output << deparse_item(subnode)
       end
